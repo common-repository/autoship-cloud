@@ -104,6 +104,7 @@ function autoship_get_payment_method_gateway_type( $gateway ) {
     'sagepaydirect'                       => 'standard',
     'cybersource'                         => 'standard',
     'wc_checkout_com_cards'               => 'standard',
+    'nmi'                                 => 'standard',
   ), autoship_get_late_token_skyverge_gateways() ) );
 
   return isset( $types[$gateway] ) ? $types[$gateway] : '';
@@ -133,6 +134,7 @@ function autoship_get_valid_payment_methods() {
     'square_credit_card'                  => 'square',
     'sagepaydirect'                       => 'sage',
     'wc_checkout_com_cards'               => 'checkout_com',
+    'nmi'                                 => 'nmi_gateway',
   ) );
 
 }
@@ -160,6 +162,7 @@ function autoship_get_valid_payment_method_type( $method_gateway_id ) {
     'square_credit_card'                  => 'Square',
     'sagepaydirect'                       => 'Sage',
     'wc_checkout_com_cards'               => 'Checkout',
+    'nmi'                                 => 'Nmi',
   ) );
 
   return isset( $types[$method_gateway_id] )? $types[$method_gateway_id] : '';
@@ -256,6 +259,7 @@ function autoship_get_related_tokenized_id( $token, $tokenize = true ) {
   return $tokenize ? WC_Payment_Tokens::get( $token_id ) : $token_id;
 
 }
+
 
 /**
  * Returns the payment method general customer data.
@@ -766,6 +770,7 @@ function autoship_get_stripe_order_payment_data( $order_id, $order ) {
 	}
 
 	$customer_id = $order->get_meta( '_stripe_customer_id' );
+
 	if ( ! empty( $token_id ) && ! empty( $customer_id ) ) {
 
     $token = autoship_get_related_tokenized_id( $token_id );
@@ -779,13 +784,91 @@ function autoship_get_stripe_order_payment_data( $order_id, $order ) {
       $payment_data->gateway_customer_id = $customer_id;
   		$payment_data->last_four           = $token->get_last4();
   		$payment_data->expiration          = $expiration;
+
       return $payment_data;
+    } else {
+      // Try to fetch payment data from Stripe API
+      return autoship_get_stripe_payment_method_data_by_id( $token_id, $customer_id );
     }
 
   }
 
 	return null;
 }
+
+// wc_stripe_generate_create_intent_request
+/**
+ * Returns a payment method data by fetching payment method object from Stripe given an ID. 
+ * Accepts both 'src_xxx' and 'pm_xxx' style IDs for backwards compatibility.
+ *
+ * @param string $payment_method_id The ID of the payment method to retrieve.
+ * @param string $customer_id Stripe Customer ID.
+ *
+ * @return QPilotPaymentData|null
+ */
+function autoship_get_stripe_payment_method_data_by_id( $payment_method_id, $customer_id ) {
+
+	if ( class_exists( 'WC_Stripe_API' ) ) {
+		$response = WC_Stripe_API::get_payment_method( $payment_method_id );
+    if ( ! empty( $response->error ) || is_wp_error( $response ) ) {
+      return null;
+    }
+    if ( empty( $response->type ) || 'card' !== $response->type ) {
+      return null;
+    }
+    $exp_year = substr( $response->card->exp_year, -2);
+    $expiration   = $response->card->exp_month  . $exp_year;
+    $description = sprintf(
+      /* translators: 1: credit card type 2: last 4 digits 3: expiry month 4: expiry year */
+      __( '%1$s ending in %2$s (expires %3$s/%4$s)', 'woocommerce' ),
+      wc_get_credit_card_type_label( $response->card->brand ),
+      $response->card->last4,
+      $response->card->exp_month,
+      $exp_year
+    );
+    $payment_data = new QPilotPaymentData();
+    $payment_data->description         = $description;
+    $payment_data->type                = 'Stripe';
+    $payment_data->gateway_payment_id  = $response->id;
+    $payment_data->gateway_customer_id = $customer_id;
+    $payment_data->last_four           = $response->card->last4;
+    $payment_data->expiration          = $expiration;
+
+    return $payment_data;
+	}
+
+	return null;
+}
+
+/**
+ * If Cart includes Autoship items append addiotional data to intent request
+ * 
+ * @param array $request
+ * 
+ * @return array $request
+ */
+function autoship_stripe_intent_request_filter($request) {
+
+	if ( autoship_cart_has_valid_autoship_items() ) {
+    // Setup card for both on and off-session payments
+    $request['setup_future_usage'] = 'off_session';
+    // Flag as a reccuring payment
+    $request['metadata']['payment_type'] = 'recurring';
+	}
+
+  return $request;
+}
+
+/**
+ * Force saving stripe payment
+ */
+function autoship_stripe_force_save($val) {
+  if ( autoship_cart_has_valid_autoship_items() ) {
+    return true;
+	}
+  return $val;
+}
+
 
 /**
  * Retrieves the charge info using the Transaction ID and Stipe API
@@ -993,6 +1076,45 @@ function autoship_get_nmi_order_payment_data( $order_id, $order ) {
 	}
  	return null;
 }
+
+/**
+ * Retrieves the Payment information from the order for the WooCommerce NMI Gateway (Enterprise)  by: Pledged Plugins
+ * Since NMI uses Customer Vault ID use tokenized data in the
+ * gatewayCustomerId (since that's customer vault ID), and nothing in the gatewayPaymentId
+ *
+ * @param int $order_id The WC Order number.
+ * @param object $order The WC Order.
+ *
+ * @return QPilotPaymentData
+ */
+function autoship_get_nmi_gateway_order_payment_data( $order_id, $order ) {
+
+  $customer_id   = $order->get_customer_id();
+  $nmi_customer_id = get_user_meta( $customer_id, '_nmi_customer_id', true );
+
+  $token_id = $order->get_meta('_nmi_card_id');
+
+  if ( ! empty( $token_id ) && ! empty( $customer_id ) ) {
+    $token = autoship_get_related_tokenized_id( $token_id );
+
+    if ( !empty( $token ) ){
+  		$payment_data = new QPilotPaymentData();
+  		$payment_data->description         = $token->get_display_name();
+  		$payment_data->type                = 'Nmi';
+  		$payment_data->gateway_customer_id = $token->get_token();
+  		$payment_data->last_four           = $token->get_last4();
+
+      // Get Expiration in MMYY format for Qpilot.
+      $expiration   = $token->get_expiry_month() . substr( $token->get_expiry_year(), -2);
+  		$payment_data->expiration          = $expiration;
+
+      return $payment_data;
+    }
+	}
+	
+ 	return null;
+}
+
 
 /**
  * Updates the NMI Payment gateway to Force Tokenization.
@@ -2104,6 +2226,7 @@ function autoship_standard_gateway_id_types(){
     'sagepaymentsusaapi'                  => 'PayaV1',
     'sagepaydirect'                       => 'Sage',
     'wc_checkout_com_cards'               => 'Checkout',
+    'nmi'                                 => 'Nmi'
   ) );
 
 }
@@ -2218,7 +2341,10 @@ function autoship_add_skyverge_stanard_types( $types ){
  * @return bool True if the token should be upserted else false
  */
 function autoship_filter_skyverge_tokens( $upsert, $token ){
-
+  // check for token
+  // return true to skip upserting
+  if( !$token || !( $token instanceof WC_Payment_Token_CC ) )
+    return true;
   // Retrieve the array of valid Autoship Gateways.
   $valid_methods    = autoship_get_valid_payment_methods();
   $skyverge_tokens  = autoship_get_late_token_skyverge_gateways();
@@ -2232,6 +2358,7 @@ function autoship_filter_skyverge_tokens( $upsert, $token ){
   return $upsert;
 
 }
+
 
 /**
  * Calls the function to add a payment method to QPilot
@@ -3840,3 +3967,21 @@ add_filter( 'woocommerce_payment_gateways_settings', 'autoship_adjust_payment_ga
  * @see autoship_filter_skyverge_tokens()
  */
 add_filter( 'autoship_add_tokenized_payment_method', 'autoship_filter_skyverge_tokens', 10, 3 );
+
+/**
+ * Forces saving Stripe payment if cart includes autoship items
+ *
+ * @see autoship_stripe_force_save()
+ */
+add_filter( 'wc_stripe_force_save_source', 'autoship_stripe_force_save' );
+
+/**
+ * Updates Stripe intent request data if cart consists autoship items
+ *
+ * @see autoship_stripe_intent_request_filter()
+ */
+add_filter( 'wc_stripe_generate_create_intent_request', 'autoship_stripe_intent_request_filter' );
+
+// Force saving card of WooCommerce NMI Gateway (Enterprise)  by: Pledged Plugins
+add_filter( 'wc_nmi_force_saved_card', '__return_true' );
+

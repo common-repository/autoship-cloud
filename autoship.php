@@ -3,17 +3,17 @@
 Plugin Name: Autoship Cloud powered by QPilot
 Plugin URI: https://autoship.cloud
 Description: Autoship Cloud for WooCommerce
-Version: 2.6.9
+Version: 2.7.0
 Author: Patterns In the Cloud LLC
 Author URI: https://qpilot.cloud
 Text Domain: autoship
 Domain Path: /languages
 
 WC requires at least: 3.4.1
-WC tested up to: 9.2.3
+WC tested up to: 9.3.3
 */
 
-define( 'Autoship_Version', '2.6.9' );
+define( 'Autoship_Version', '2.7.0' );
 
 if ( ! defined( 'Autoship_Plugin_Dir' ) ) {
 	define( 'Autoship_Plugin_Dir', __DIR__ );

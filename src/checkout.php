@@ -82,7 +82,8 @@ function autoship_force_save_card() {
 			'wc-cybersource-credit-card-tokenize-payment-method',
 			'wc-wc_checkout_com_cards-new-payment-method',
 			'wc-stripe_sepa-new-payment-method',
-      'wc-ppcp-credit-card-gateway-new-payment-method'
+      'wc-ppcp-credit-card-gateway-new-payment-method',
+      'wc-nmi-new-payment-method'
 		) );
 
 		autoship_print_scripts_data( array(

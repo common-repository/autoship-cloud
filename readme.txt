@@ -7,9 +7,9 @@ Tags: woocommerce subscriptions, subscribe and save, repeat delivery, subscripti
 Requires at least: 4.6
 Tested up to: 6.6.2
 WC requires at least: 3.4.1
-WC tested up to: 9.2.3
+WC tested up to: 9.3.3
 Requires PHP: 7.3
-Stable tag: 2.6.9
+Stable tag: 2.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -290,6 +290,21 @@ launch product subscriptions and repeat delivery options!
 Offer dynamic coupons on recurring orders, automate shipping, sync inventory & stock status.
 
 == Changelog ==
+
+= 2.7.0 -  2024-10-31 =
+
+- New!  The plugin [_NMI Payment Gateway for WooCommerce_ by Pledged Plugins (Enterprise)](https://pledgedplugins.com/products/nmi-payment-gateway-woocommerce/) is now supported with Autoship!  Merchants using the Enterprise version of _NMI Payment Gateway For WooCommerce_ can use this plugin with the [NMI integration](https://docs.qpilot.cloud/docs/nmi) to save payment methods during an Autoship Checkout and for processing Autoship Scheduled Orders.
+
+- Fixed: Resolved an issue with the Woo Stripe Plugin that would cause some Credit Card payments not to save their tokenized ids to the Scheduled Order after an Autoship Checkout.
+
+- Functions updated:
+  - **autoship_filter_skyverge_tokens** - Check if the provided **$token** variable exists and if instance of **WC_Payment_Token_CC** before calling
+  - **autoship_get_stripe_order_payment_data** - if the Stripe token is not available in DB, then try to get the token from the Stripe API
+
+- New Functions added:
+  - **autoship_get_stripe_payment_method_data_by_id** - Gets payment data from the Stripe API
+  - **autoship_stripe_intent_request_filter** - Adds additional params to the Stripe payment intent request
+  - **autoship_stripe_force_save** - Forces saving the Stripe payment
 
 = 2.6.9 -  2024-09-12 =
 - Fixed: Resolved compatibility issues Scheduled Order metadata  and HPOS (High Performance Order Storage)

@@ -2,16 +2,16 @@
 # This file is distributed under the same license as the Autoship Cloud powered by QPilot plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Autoship Cloud powered by QPilot 2.6.9\n"
+"Project-Id-Version: Autoship Cloud powered by QPilot 2.7.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/autoship-cloud\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-09-12T18:25:45+00:00\n"
+"POT-Creation-Date: 2024-10-31T18:02:29+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.11.0-alpha-e30b356\n"
+"X-Generator: WP-CLI 2.12.0-alpha-4d74dc1\n"
 "X-Domain: autoship\n"
 
 #. Plugin Name of the plugin
@@ -909,12 +909,12 @@ msgid "QPilot Dynamic Coupon generated from Coupon ID #%d."
 msgstr ""
 
 #: src/customers.php:152
-#: src/payments.php:2668
+#: src/payments.php:2795
 msgid "There was a problem updating the information on your %s. Additional details: %s"
 msgstr ""
 
 #: src/customers.php:155
-#: src/payments.php:2671
+#: src/payments.php:2798
 msgid "Your %s Have been successfully updated."
 msgstr ""
 
@@ -927,8 +927,8 @@ msgid "Update Shipping Address information for %s? <a href=\"%s\" tabindex=\"1\"
 msgstr ""
 
 #: src/customers.php:207
-#: src/payments.php:2743
-#: src/payments.php:2744
+#: src/payments.php:2870
+#: src/payments.php:2871
 msgid "Update"
 msgstr ""
 
@@ -1157,36 +1157,36 @@ msgstr ""
 msgid "Autoship Scheduled Order ID(s) <strong>%s</strong> assigned Successfully."
 msgstr ""
 
-#: src/payments.php:1991
-#: src/payments.php:2035
-#: src/payments.php:2078
+#: src/payments.php:2113
+#: src/payments.php:2157
+#: src/payments.php:2200
 #: src/scheduled-orders.php:4413
 #: src/scheduled-orders.php:5413
 #: src/scheduled-orders.php:5419
 msgid "Autoship Payment Methods"
 msgstr ""
 
-#: src/payments.php:2645
+#: src/payments.php:2772
 msgid "Invalid payment method."
 msgstr ""
 
-#: src/payments.php:2651
+#: src/payments.php:2778
 msgid "You have insufficient rights to make this change."
 msgstr ""
 
-#: src/payments.php:2743
+#: src/payments.php:2870
 msgid "Use the newly Added Payment Method for your <strong>%s</strong> as well? <a href=\"%s\" tabindex=\"1\" class=\"button\">%s</a>"
 msgstr ""
 
-#: src/payments.php:2744
+#: src/payments.php:2871
 msgid "Use the new Payment Method ( %s ) for your <strong>%s</strong> as well? <a href=\"%s\" tabindex=\"1\" class=\"button\">%s</a>"
 msgstr ""
 
-#: src/payments.php:2838
+#: src/payments.php:2965
 msgid "<p><strong><i class=\"autoship_update_all_orders\"></i></strong> Select to apply the payment method to your %s.</p>"
 msgstr ""
 
-#: src/payments.php:3557
+#: src/payments.php:3684
 msgid "Autoship Payment Methods Error"
 msgstr ""
 
